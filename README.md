@@ -9,10 +9,10 @@
 - [x] create-react-app
 - [x] Install react-leaflet: https://github.com/PaulLeCam/react-leaflet
 - [x] Get a map on the page!
-- [] Get the users location
-  - [] with the browser
-  - [] with their IP using an API
-- [] Show a pin at the users location
+- [x] Get the users location
+  - [x] with the browser
+  - [x] with their IP using an API
+- [x] Show a pin at the users location
 - [] Show a form to submit a message
   - when form is submitted - POST /message
 - [] Setup server with create-express-api: https://www.npmjs.com/package/create-express-api
@@ -36,6 +36,6 @@
 
 ## Stretch
 
-- [ ] Allow user to drag pin
+- [ ] Allow user to drag pin when placing for precision placing
 - [ ] Login
 - [ ] Users have their own guest map with their own markers and unique URL

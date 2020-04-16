@@ -1,8 +1,18 @@
 // @flow
-
 import React, { Component } from "react";
 import { Map, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
+import {
+  Card,
+  Button,
+  CardTitle,
+  CardText,
+  Form,
+  FormGroup,
+  Label,
+  Input,
+  FormText,
+} from "reactstrap";
 import "./App.css";
 
 var needIcon = L.icon({
@@ -13,7 +23,7 @@ var needIcon = L.icon({
   popupAnchor: [0, -47],
 });
 
-export default class App extends Component {
+class App extends Component {
   state = {
     location: {
       lat: -26.0385999,
@@ -21,6 +31,10 @@ export default class App extends Component {
     },
     haveUsersLocation: false,
     zoom: 2,
+    userMessage: {
+      name: "",
+      message: "",
+    },
   };
 
   componentDidMount() {
@@ -53,24 +67,87 @@ export default class App extends Component {
     );
   }
 
+  formSubmitted = (event) => {
+    event.preventDefault();
+    console.log(this.state.userMessage);
+  };
+
+  valueChanged = (event) => {
+    const { name, value } = event.target;
+    this.setState((prevState) => ({
+      userMessage: {
+        ...prevState.userMessage,
+        [name]: value,
+      },
+    }));
+  };
+
   render() {
     const position = [this.state.location.lat, this.state.location.lng];
     return (
-      <Map className="map" center={position} zoom={this.state.zoom}>
-        <TileLayer
-          attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        {this.state.haveUsersLocation ? (
-          <Marker icon={needIcon} position={position}>
-            <Popup>
-              A pretty CSS3 popup. <br /> Easily customizable.
-            </Popup>
-          </Marker>
-        ) : (
-          ""
-        )}
-      </Map>
+      <div className="map">
+        <Map className="map" center={position} zoom={this.state.zoom}>
+          <TileLayer
+            attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+
+          {this.state.haveUsersLocation ? (
+            <Marker icon={needIcon} position={position}>
+              <Popup>
+                A pretty CSS3 popup. <br /> Easily customizable.
+              </Popup>
+            </Marker>
+          ) : (
+            ""
+          )}
+          <div className="message-form">
+            <Card body>
+              <h2>Welcome to PingTheThing!</h2>
+              <CardTitle>
+                Create a pin on your current location or a specified location.
+              </CardTitle>
+              <CardText>
+                Create a Need, Solution, Vibe or Data pin now!
+              </CardText>
+              <Form onSubmit={this.formSubmitted}>
+                <FormGroup>
+                  <Label for="name">Name:</Label>
+                  <Input
+                    onChange={this.valueChanged}
+                    type="text"
+                    name="name"
+                    id="name"
+                    placeholder="Enter your name"
+                    required
+                  />
+                </FormGroup>
+                <FormGroup>
+                  <Label for="message">Message:</Label>
+                  <Input
+                    onChange={this.valueChanged}
+                    type="textarea"
+                    name="message"
+                    id="message"
+                    placeholder="Enter a message"
+                    required
+                  />
+                </FormGroup>
+                <FormText color="muted">By submitting you agree,</FormText>
+                <Button
+                  type="submit"
+                  color="info"
+                  disabled={!this.state.haveUsersLocation}
+                >
+                  Create Ping
+                </Button>
+              </Form>
+            </Card>
+          </div>
+        </Map>
+      </div>
     );
   }
 }
+
+export default App;

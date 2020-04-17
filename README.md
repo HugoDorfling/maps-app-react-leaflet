@@ -1,4 +1,4 @@
-# Guest Map
+# PostMap
 
 - App detects users location (from browser or IP)
 - Guests of the website can leave a message
@@ -23,10 +23,10 @@
   - name
   - message
   - datetime
-- [] When the page loads get all messages
-  - [] GET /messages
-- [] Add pins to the map
-- [] Click a pin to see the message
+- [x] When the page loads get all messages
+  - [x] GET /messages
+- [x] Add pins to the map
+- [x] Click a pin to see the message
 - [] DEPLOY!
   - [] https://
 - Refactor React app

@@ -14,10 +14,45 @@ body {
 }
 
 .message-form {
-  position: absolute;
-  bottom: 20px;
-  right: 20px;
-  z-index: 999;
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  z-index: 800;
+}
+
+.welcome-section {
+  display: flex;
+  align-items: center;
+}
+
+.welcome-text {
+  display: flex;
+  flex-direction: column;
+  color: white;
+  align-items: center;
+}
+
+.welcome-text h2 {
+  color: rgb(9, 219, 209);
+}
+
+.message-card {
+  color: rgb(9, 219, 209);
+  background-color: black;
+  align-items: center;
   width: fit-content;
-  height: fit-content;
+}
+
+.disclaimer {
+  margin-bottom: 5px;
+}
+img {
+  width: 50%;
+  height: auto;
+  align-items: center;
+}
+
+.logo {
+  width: 100px;
+  height: auto;
 }

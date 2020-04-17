@@ -15,9 +15,9 @@
 - [x] Show a pin at the users location
 - [x] Show a form to submit a message
   - when form is submitted - POST /message
-- [] Setup server with create-express-api: https://www.npmjs.com/package/create-express-api
-- [] Add monk and joi
-- [] POST /messages
+- [x] Setup server with create-express-api: https://www.npmjs.com/package/create-express-api
+- [x] Add monk and joi
+- [x] POST /messages
   - latitude
   - longitude
   - name

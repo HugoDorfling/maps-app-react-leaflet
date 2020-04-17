@@ -14,14 +14,35 @@ import {
   FormText,
 } from "reactstrap";
 import "./App.css";
-
-var needIcon = L.icon({
-  iconUrl:
-    "https://drive.google.com/uc?export=view&id=11aK61HHCL1TrdFfgt0Y-2hcYc6kiRVnw",
+import Joi from "joi";
+import needIcon from "./red-icon.png";
+import solutionIcon from "./blue-icon.png";
+import logo from "./ptt-icon.png";
+const messageIcon = L.icon({
+  iconUrl: needIcon,
   iconSize: [40, 47],
   iconAnchor: [20, 47],
   popupAnchor: [0, -47],
 });
+
+const myIcon = L.icon({
+  iconUrl: solutionIcon,
+  iconSize: [40, 47],
+  iconAnchor: [20, 47],
+  popupAnchor: [0, -47],
+});
+
+const schema = Joi.object().keys({
+  name: Joi.string()
+    .regex(/^[A-Za-z]{1,100}$/)
+    .required(),
+  message: Joi.string().min(1).max(500).required(),
+});
+
+const API_URL =
+  window.location.hostname === "localhost"
+    ? "http://localhost:5000/api/v1/messages"
+    : "PRODUCTION-URL-HERE";
 
 class App extends Component {
   state = {
@@ -35,9 +56,39 @@ class App extends Component {
       name: "",
       message: "",
     },
+    sendingMessage: false,
+    sentMessage: false,
+    messages: [],
   };
 
   componentDidMount() {
+    //fetch all messages:
+    fetch(API_URL)
+      .then((res) => res.json())
+      .then((messages) => {
+        const haveSeenLocation = {};
+
+        messages = messages.reduce((all, message) => {
+          const key = `${message.latitude.toFixed(
+            3
+          )} ${message.longitude.toFixed(3)}`;
+          if (haveSeenLocation[key]) {
+            haveSeenLocation[key].otherMessages =
+              haveSeenLocation[key].otherMessages || [];
+            haveSeenLocation[key].otherMessages.push(message);
+          } else {
+            haveSeenLocation[key] = message;
+            all.push(message);
+          }
+          return all;
+        }, []);
+
+        this.setState({
+          messages,
+        });
+      });
+
+    // Get users location
     navigator.geolocation.getCurrentPosition(
       (position) => {
         this.setState({
@@ -67,9 +118,49 @@ class App extends Component {
     );
   }
 
+  formIsValid = () => {
+    const userMessage = {
+      name: this.state.userMessage.name,
+      message: this.state.userMessage.message,
+    };
+
+    const result = Joi.validate(userMessage, schema);
+
+    return !result.error && this.state.haveUsersLocation ? true : false;
+  };
+
   formSubmitted = (event) => {
     event.preventDefault();
     console.log(this.state.userMessage);
+
+    if (this.formIsValid()) {
+      this.setState({
+        sendingMessage: true,
+      });
+
+      fetch(API_URL, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          name: this.state.userMessage.name,
+          message: this.state.userMessage.message,
+          latitude: this.state.location.lat,
+          longitude: this.state.location.lng,
+        }),
+      })
+        .then((res) => res.json())
+        .then((message) => {
+          console.log(message);
+          setTimeout(() => {
+            this.setState({
+              sendingMessage: false,
+              sentMessage: true,
+            });
+          }, 1000);
+        });
+    }
   };
 
   valueChanged = (event) => {
@@ -86,30 +177,60 @@ class App extends Component {
     const position = [this.state.location.lat, this.state.location.lng];
     return (
       <div className="map">
-        <Map className="map" center={position} zoom={this.state.zoom}>
+        <Map
+          className="map"
+          center={position}
+          zoom={this.state.zoom}
+          dragging="true"
+        >
           <TileLayer
             attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
 
           {this.state.haveUsersLocation ? (
-            <Marker icon={needIcon} position={position}>
-              <Popup>
-                A pretty CSS3 popup. <br /> Easily customizable.
-              </Popup>
-            </Marker>
+            <Marker icon={myIcon} position={position}></Marker>
           ) : (
             ""
           )}
-          <div className="message-form">
-            <Card body>
-              <h2>Welcome to PingTheThing!</h2>
-              <CardTitle>
-                Create a pin on your current location or a specified location.
-              </CardTitle>
-              <CardText>
-                Create a Need, Solution, Vibe or Data pin now!
-              </CardText>
+          {this.state.messages.map((message) => (
+            <Marker
+              key={message._id}
+              icon={messageIcon}
+              position={[message.latitude, message.longitude]}
+            >
+              <Popup>
+                <p>
+                  <em>{message.name}:</em> {message.message}
+                </p>
+                {message.otherMessages
+                  ? message.otherMessages.map((message) => (
+                      <p key="message._id">
+                        <em>{message.name}:</em> {message.message}
+                      </p>
+                    ))
+                  : ""}
+              </Popup>
+            </Marker>
+          ))}
+        </Map>
+
+        <div className="message-form">
+          <Card body className="message-card bg-dark">
+            <div className="welcome-section">
+              <img src={logo} alt="logo" className="logo"></img>
+              <div className="welcome-text">
+                <h2>Welcome to PostMap!</h2>
+                <h5>Developed by Hugo Dorfling</h5>
+              </div>
+            </div>
+
+            <CardTitle>
+              Create a pin on your current location and add a message!
+            </CardTitle>
+            {!this.state.sendingMessage &&
+            !this.state.sentMessage &&
+            this.state.haveUsersLocation ? (
               <Form onSubmit={this.formSubmitted}>
                 <FormGroup>
                   <Label for="name">Name:</Label>
@@ -133,18 +254,31 @@ class App extends Component {
                     required
                   />
                 </FormGroup>
-                <FormText color="muted">By submitting you agree,</FormText>
+                <FormText color="muted" className="disclaimer">
+                  We
+                  <u>
+                    <em> do not </em>
+                  </u>
+                  share your data.
+                </FormText>
                 <Button
                   type="submit"
                   color="info"
-                  disabled={!this.state.haveUsersLocation}
+                  disabled={!this.formIsValid()}
                 >
-                  Create Ping
+                  Create POST
                 </Button>
               </Form>
-            </Card>
-          </div>
-        </Map>
+            ) : this.state.sendingMessage || !this.state.haveUsersLocation ? (
+              <img
+                alt="loading"
+                src="https://i.giphy.com/media/8rFvX2jLDn2vkVihUG/giphy.gif"
+              />
+            ) : (
+              <CardText>'Thanks for submitting a message!'</CardText>
+            )}
+          </Card>
+        </div>
       </div>
     );
   }
